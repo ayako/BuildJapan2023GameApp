@@ -47,16 +47,19 @@ namespace Asteroids.GameComponents
         //     float x, float y, float dx, float dy, int size
         public List<Asteroid> GenerateAsteroids(int count)
         {
-            List<Asteroid> asteroids = new List<Asteroid>();
+            var asteroids = new List<Asteroid>();
+
             for (int i = 0; i < count; i++)
             {
                 float x = _random.Next(0, _width);
                 float y = _random.Next(0, _height);
-                int size = _random.Next(50, 90);
-                float dx = (float)(_random.NextDouble() * 4 - 2);
-                float dy = (float)(_random.NextDouble() * 4 - 2);
+                float dx = _random.Next(-5, 5);
+                float dy = _random.Next(-5, 5);
+                int size = _random.Next(20, 50);
+
                 asteroids.Add(new Asteroid(x, y, dx, dy, size));
             }
+
             return asteroids;
         }
 
@@ -65,29 +68,6 @@ namespace Asteroids.GameComponents
         // 移動できる範囲はスクリーンのサイズに限定
         public void MoveAsteroids()
         {
-            for (int i = 0; i < Asteroids.Count; i++)
-            {
-                Asteroids[i].x += Asteroids[i].dx;
-                Asteroids[i].y += Asteroids[i].dy;
-
-                if (Asteroids[i].x > _width)
-                {
-                    Asteroids[i].x = 0 - Asteroids[i].size;
-                }
-                else if (Asteroids[i].x < 0 - Asteroids[i].size)
-                {
-                    Asteroids[i].x = _width;
-                }
-
-                if (Asteroids[i].y > _height)
-                {
-                    Asteroids[i].y = 0 - Asteroids[i].size;
-                }
-                else if (Asteroids[i].y < 0 - Asteroids[i].size)
-                {
-                    Asteroids[i].y = _height;
-                }
-            }
         }
 
         // MoveSpaceShip メソッド:
@@ -95,32 +75,6 @@ namespace Asteroids.GameComponents
         // 移動できる範囲はスクリーンのサイズに限定
         public void MoveSpaceShip()
         {
-            foreach (var player in Players.Values)
-            {
-                float newX = player.x + MathF.Sin(player.angle) * player.speed;
-                float newY = player.y - MathF.Cos(player.angle) * player.speed;
-
-                if (newX > _width)
-                {
-                    newX = 0;
-                }
-                else if (newX < 0)
-                {
-                    newX = _width;
-                }
-
-                if (newY > _height)
-                {
-                    newY = 0;
-                }
-                else if (newY < 0)
-                {
-                    newY = _height;
-                }
-
-                player.x = newX;
-                player.y = newY;
-            }
         }
 
         // MoveBullets メソッド:
