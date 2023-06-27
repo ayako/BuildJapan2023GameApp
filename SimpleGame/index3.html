@@ -13,161 +13,209 @@ HTML と JavaScript で動くシューティングゲームのコードを生成
 <!DOCTYPE html>
 <html>
 <head>
-  <title>シューティングゲーム</title>
-  <style>
-    canvas {
-      border: 1px solid black;
-    }
-  </style>
+    <title>シューティングゲーム</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="scoreboard">Score: 0</div>
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const scoreboard = document.getElementById("scoreboard");
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        // ゲームオブジェクト
+        var game = {
+            score: 0,
+            level: 1,
+            ship: null,
+            asteroids: [],
+            bullets: [],
+            init: function() {
+                // キーイベントの登録
+                window.addEventListener("keydown", function(e) {
+                    game.ship.handleKeyDown(e);
+                });
+                window.addEventListener("keyup", function(e) {
+                    game.ship.handleKeyUp(e);
+                });
 
-    // 宇宙船の初期位置とサイズ
-    let shipX = canvas.width / 2;
-    let shipY = canvas.height - 50;
-    const shipWidth = 50;
-    const shipHeight = 50;
+                // 宇宙船の作成
+                game.ship = new Ship(400, 300, "red");
 
-    // 弾の初期位置とサイズ
-    let bulletX = shipX + shipWidth / 2;
-    let bulletY = shipY;
-    const bulletWidth = 5;
-    const bulletHeight = 20;
-    let bulletSpeed = 10;
-    let bulletFired = false;
+                // 小惑星の作成
+                for (var i = 0; i < 10; i++) {
+                    var x = Math.floor(Math.random() * 800);
+                    var y = Math.floor(Math.random() * 600);
+                    var dx = Math.floor(Math.random() * 5) - 2;
+                    var dy = Math.floor(Math.random() * 5) - 2;
+                    game.asteroids.push(new Asteroid(x, y, dx, dy, "gray"));
+                }
 
-    // 小惑星の初期位置とサイズ
-    const asteroidCount = 5;
-    const asteroidMinSize = 20;
-    const asteroidMaxSize = 50;
-    const asteroidMinSpeed = 1;
-    const asteroidMaxSpeed = 5;
-    let asteroids = [];
+                // ゲームループの開始
+                gameLoop();
+            }
+        };
 
-    // スコアの初期値
-    let score = 0;
-
-    // キー入力の処理
-    const keys = {};
-    document.addEventListener("keydown", event => {
-      keys[event.code] = true;
-    });
-    document.addEventListener("keyup", event => {
-      keys[event.code] = false;
-    });
-
-    // 小惑星を生成する関数
-    function createAsteroids() {
-      for (let i = 0; i < asteroidCount; i++) {
-        const size = Math.floor(Math.random() * (asteroidMaxSize - asteroidMinSize + 1)) + asteroidMinSize;
-        const x = Math.floor(Math.random() * (canvas.width - size));
-        const y = Math.floor(Math.random() * (canvas.height / 2 - size));
-        const speed = Math.floor(Math.random() * (asteroidMaxSpeed - asteroidMinSpeed + 1)) + asteroidMinSpeed;
-        asteroids.push({ x, y, size, speed });
-      }
-    }
-
-    // 宇宙船を描画する関数
-    function drawShip() {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(shipX, shipY, shipWidth, shipHeight);
-    }
-
-    // 弾を描画する関数
-    function drawBullet() {
-      ctx.fillStyle = "red";
-      ctx.fillRect(bulletX, bulletY, bulletWidth, bulletHeight);
-    }
-
-    // 小惑星を描画する関数
-    function drawAsteroids() {
-      ctx.fillStyle = "gray";
-      asteroids.forEach(asteroid => {
-        ctx.fillRect(asteroid.x, asteroid.y, asteroid.size, asteroid.size);
-      });
-    }
-
-    // スコアを更新する関数
-    function updateScore() {
-      score += 10;
-      scoreboard.innerText = `Score: ${score}`;
-    }
-
-    // ゲームループ
-    function gameLoop() {
-      // キー入力に応じて宇宙船を移動する
-      if (keys["ArrowLeft"] && shipX > 0) {
-        shipX -= 5;
-      }
-      if (keys["ArrowRight"] && shipX < canvas.width - shipWidth) {
-        shipX += 5;
-      }
-      if (keys["ArrowUp"] && shipY > 0) {
-        shipY -= 5;
-      }
-      if (keys["ArrowDown"] && shipY < canvas.height - shipHeight) {
-        shipY += 5;
-      }
-
-      // 弾を発射する
-      if (keys["Space"] && !bulletFired) {
-        bulletX = shipX + shipWidth / 2 - bulletWidth / 2;
-        bulletY = shipY;
-        bulletFired = true;
-      }
-
-      // 弾を移動する
-      if (bulletFired) {
-        bulletY -= bulletSpeed;
-        if (bulletY < 0) {
-          bulletFired = false;
-        }
-      }
-
-      // 小惑星を移動する
-      asteroids.forEach(asteroid => {
-        asteroid.y += asteroid.speed;
-        if (asteroid.y > canvas.height) {
-          asteroid.y = -asteroid.size;
-          asteroid.x = Math.floor(Math.random() * (canvas.width - asteroid.size));
+        // 宇宙船オブジェクト
+        function Ship(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.speed = 5;
+            this.keys = {
+                left: false,
+                right: false,
+                up: false,
+                down: false,
+                space: false
+            };
+            this.handleKeyDown = function(e) {
+                if (e.keyCode == 37) {
+                    this.keys.left = true;
+                } else if (e.keyCode == 39) {
+                    this.keys.right = true;
+                } else if (e.keyCode == 38) {
+                    this.keys.up = true;
+                } else if (e.keyCode == 40) {
+                    this.keys.down = true;
+                } else if (e.keyCode == 32) {
+                    this.keys.space = true;
+                }
+            };
+            this.handleKeyUp = function(e) {
+                if (e.keyCode == 37) {
+                    this.keys.left = false;
+                } else if (e.keyCode == 39) {
+                    this.keys.right = false;
+                } else if (e.keyCode == 38) {
+                    this.keys.up = false;
+                } else if (e.keyCode == 40) {
+                    this.keys.down = false;
+                } else if (e.keyCode == 32) {
+                    this.keys.space = false;
+                }
+            };
+            this.move = function() {
+                if (this.keys.left) {
+                    this.x -= this.speed;
+                }
+                if (this.keys.right) {
+                    this.x += this.speed;
+                }
+                if (this.keys.up) {
+                    this.y -= this.speed;
+                }
+                if (this.keys.down) {
+                    this.y += this.speed;
+                }
+                if (this.keys.space) {
+                    game.bullets.push(new Bullet(this.x, this.y, "yellow"));
+                }
+            };
+            this.draw = function() {
+                var canvas = document.getElementById("gameCanvas");
+                var ctx = canvas.getContext("2d");
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - 10, this.y - 10, 20, 20);
+            };
         }
 
-        // 小惑星と弾の衝突判定
-        if (bulletFired && bulletX < asteroid.x + asteroid.size && bulletX + bulletWidth > asteroid.x && bulletY < asteroid.y + asteroid.size && bulletY + bulletHeight > asteroid.y) {
-          bulletFired = false;
-          updateScore();
-          asteroid.y = -asteroid.size;
-          asteroid.x = Math.floor(Math.random() * (canvas.width - asteroid.size));
+        // 小惑星オブジェクト
+        function Asteroid(x, y, dx, dy, color) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.color = color;
+            this.move = function() {
+                this.x += this.dx;
+                this.y += this.dy;
+                if (this.x < 0 || this.x > 800) {
+                    this.dx = -this.dx;
+                }
+                if (this.y < 0 || this.y > 600) {
+                    this.dy = -this.dy;
+                }
+            };
+            this.draw = function() {
+                var canvas = document.getElementById("gameCanvas");
+                var ctx = canvas.getContext("2d");
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 20, 0, 2 * Math.PI);
+                ctx.fill();
+            };
         }
 
-        // 小惑星と宇宙船の衝突判定
-        if (shipX < asteroid.x + asteroid.size && shipX + shipWidth > asteroid.x && shipY < asteroid.y + asteroid.size && shipY + shipHeight > asteroid.y) {
-          alert("ゲームオーバー");
-          document.location.reload();
+        // 弾オブジェクト
+        function Bullet(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.speed = 10;
+            this.move = function() {
+                this.y -= this.speed;
+            };
+            this.draw = function() {
+                var canvas = document.getElementById("gameCanvas");
+                var ctx = canvas.getContext("2d");
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - 2, this.y - 10, 4, 10);
+            };
         }
-      });
 
-      // 画面をクリアして再描画する
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawShip();
-      if (bulletFired) {
-        drawBullet();
-      }
-      drawAsteroids();
+        // ゲームループ
+        function gameLoop() {
+            // ゲームオブジェクトの更新
+            game.ship.move();
+            for (var i = 0; i < game.asteroids.length; i++) {
+                game.asteroids[i].move();
+            }
+            for (var i = 0; i < game.bullets.length; i++) {
+                game.bullets[i].move();
+            }
 
-      // 次のフレームを描画する
-      requestAnimationFrame(gameLoop);
-    }
+            // 衝突判定
+            for (var i = 0; i < game.asteroids.length; i++) {
+                for (var j = 0; j < game.bullets.length; j++) {
+                    if (collision(game.asteroids[i], game.bullets[j])) {
+                        game.score += 10;
+                        game.asteroids.splice(i, 1);
+                        game.bullets.splice(j, 1);
+                        break;
+                    }
+                }
+            }
 
-    // ゲームを開始する
-    createAsteroids();
-    gameLoop();
-  </script>
+            // 描画
+            var canvas = document.getElementById("gameCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            game.ship.draw();
+            for (var i = 0; i < game.asteroids.length; i++) {
+                game.asteroids[i].draw();
+            }
+            for (var i = 0; i < game.bullets.length; i++) {
+                game.bullets[i].draw();
+            }
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + game.score, 10, 30);
+
+            // 次のフレームの開始
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // 衝突判定
+        function collision(obj1, obj2) {
+            var dx = obj1.x - obj2.x;
+            var dy = obj1.y - obj2.y;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < 40;
+        }
+
+        // ゲームの開始
+        game.init();
+    </script>
 </body>
 </html>
