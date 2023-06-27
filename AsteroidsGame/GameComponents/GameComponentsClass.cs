@@ -10,6 +10,45 @@
     // すべての関数とプロパティは Public に設定
     public class Player
     {
+        public string connectionId { get; set; }
+        public string name { get; set; }
+        public float x { get; set; }
+        public float y { get; set; }
+        public float angle { get; set; }
+        public float speed { get; set; }
+        public float acceleration { get; set; }
+        public int size { get; set; }
+        public uint Score { get; set; }
+        public bool isDead { get; set; }
+
+        public Player(string ConnectionId, string Name, float x, float y)
+        {
+            this.connectionId = ConnectionId;
+            this.name = Name;
+            this.x = x;
+            this.y = y;
+
+            this.angle = 0f;
+            this.speed = 0f;
+            this.acceleration = 0f;
+            this.size = 30;
+            this.Score = 0;
+            this.isDead = false;
+        }
+
+        public void Update(float x, float y, float angle, float speed, float acceleration)
+        {
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
+            this.speed = speed;
+            this.acceleration = acceleration;
+        }
+
+        public void Update(float x, float y)
+        {
+            Update(x, y, angle, speed, acceleration);
+        }
     }
 
     // Bullet クラスの定義:

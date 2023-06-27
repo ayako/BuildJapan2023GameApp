@@ -68,6 +68,29 @@ namespace Asteroids.GameComponents
         // 移動できる範囲はスクリーンのサイズに限定
         public void MoveAsteroids()
         {
+            for (int i = 0; i < Asteroids.Count; i++)
+            {
+                Asteroids[i].x += Asteroids[i].dx;
+                Asteroids[i].y += Asteroids[i].dy;
+
+                if (Asteroids[i].x > _width)
+                {
+                    Asteroids[i].x = 0 - Asteroids[i].size;
+                }
+                else if (Asteroids[i].x < 0 - Asteroids[i].size)
+                {
+                    Asteroids[i].x = _width;
+                }
+
+                if (Asteroids[i].y > _height)
+                {
+                    Asteroids[i].y = 0 - Asteroids[i].size;
+                }
+                else if (Asteroids[i].y < 0 - Asteroids[i].size)
+                {
+                    Asteroids[i].y = _height;
+                }
+            }
         }
 
         // MoveSpaceShip メソッド:
@@ -75,6 +98,32 @@ namespace Asteroids.GameComponents
         // 移動できる範囲はスクリーンのサイズに限定
         public void MoveSpaceShip()
         {
+            foreach (var player in Players.Values)
+            {
+                float newX = player.x + MathF.Sin(player.angle) * player.speed;
+                float newY = player.y - MathF.Cos(player.angle) * player.speed;
+
+                if (newX > _width)
+                {
+                    newX = 0;
+                }
+                else if (newX < 0)
+                {
+                    newX = _width;
+                }
+
+                if (newY > _height)
+                {
+                    newY = 0;
+                }
+                else if (newY < 0)
+                {
+                    newY = _height;
+                }
+
+                player.x = newX;
+                player.y = newY;
+            }
         }
 
         // MoveBullets メソッド:

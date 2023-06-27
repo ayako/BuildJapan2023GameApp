@@ -1,7 +1,21 @@
 // バックエンドから Frame オブジェクトを処理するための SignalR 接続を構成するコードをJavaScriptで生成してください。
 // メッセージ名は updateFrame, URL は /gameHub です。 
 
+var connection = new signalR.HubConnectionBuilder()
+    .withUrl("/gameHub")
+    .build();
 
+var gameframe;
+
+connection.on("updateFrame", (frame) => {
+    // Do something with the frame object
+    gameframe = frame;
+    render(frame);
+});
+
+connection.start()
+    .then(() => console.log("SignalR connection started"))
+    .catch((err) => console.error(err));
 
 // バックエンドから取得する Frame オブジェクトをレンダリングする JavaScriptのコードを生成してください。
 // すべての小惑星、弾、宇宙船、そしてそれらの爆発を描くために Frame オブジェクトを使用します。 
