@@ -1,0 +1,182 @@
+<!-- 
+HTML と JavaScript で動くシューティングゲームのコードを生成してください。
+コードは一つの HTML ファイルにしてください。 
+
+要件は以下の通りです: 
+
+1.一つの宇宙船、乱数で発生させた複数の小惑星、宇宙船から発射される弾が背景と違う色で表示されるようにしてください。  
+2.宇宙船は上下左右のキーで動き、動いている方向に弾を発射し、小惑星を破壊します。
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shooting Game</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shooting Game</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        // Initialize canvas and context
+        var canvas = document.getElementById("gameCanvas");
+        var ctx = canvas.getContext("2d");
+
+        // Initialize game objects
+        var ship = {
+            x: canvas.width/2,
+            y: canvas.height-50,
+            width: 50,
+            height: 50,
+            color: "blue",
+            speed: 5,
+            bullets: []
+        };
+        var asteroids = [];
+        var bulletColor = "red";
+
+        // Generate random asteroids
+        function generateAsteroids() {
+            for (var i = 0; i < 5; i++) {
+                var asteroid = {
+                    x: Math.floor(Math.random() * (canvas.width - 50)),
+                    y: Math.floor(Math.random() * (canvas.height/2)),
+                    width: 50,
+                    height: 50,
+                    color: "gray",
+                    speed: Math.floor(Math.random() * 5) + 1
+                };
+                asteroids.push(asteroid);
+            }
+        }
+        generateAsteroids();
+
+        // Draw game objects
+        function drawShip() {
+            ctx.fillStyle = ship.color;
+            ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+        }
+        function drawAsteroids() {
+            for (var i = 0; i < asteroids.length; i++) {
+                ctx.fillStyle = asteroids[i].color;
+                ctx.fillRect(asteroids[i].x, asteroids[i].y, asteroids[i].width, asteroids[i].height);
+            }
+        }
+        function drawBullets() {
+            for (var i = 0; i < ship.bullets.length; i++) {
+                ctx.fillStyle = bulletColor;
+                ctx.fillRect(ship.bullets[i].x, ship.bullets[i].y, 5, 10);
+            }
+        }
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawShip();
+            drawAsteroids();
+            drawBullets();
+        }
+
+        // Move game objects
+        function moveShip() {
+            if (ship.x < 0) {
+                ship.x = 0;
+            }
+            if (ship.x + ship.width > canvas.width) {
+                ship.x = canvas.width - ship.width;
+            }
+            if (ship.y < 0) {
+                ship.y = 0;
+            }
+            if (ship.y + ship.height > canvas.height) {
+                ship.y = canvas.height - ship.height;
+            }
+            for (var i = 0; i < ship.bullets.length; i++) {
+                ship.bullets[i].y -= 10;
+                if (ship.bullets[i].y < 0) {
+                    ship.bullets.splice(i, 1);
+                }
+            }
+        }
+        function moveAsteroids() {
+            for (var i = 0; i < asteroids.length; i++) {
+                asteroids[i].y += asteroids[i].speed;
+                if (asteroids[i].y > canvas.height) {
+                    asteroids[i].y = 0 - asteroids[i].height;
+                    asteroids[i].x = Math.floor(Math.random() * (canvas.width - asteroids[i].width));
+                }
+            }
+        }
+        function move() {
+            moveShip();
+            moveAsteroids();
+        }
+
+        // Handle user input
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowLeft") {
+                ship.x -= ship.speed;
+            }
+            if (event.key === "ArrowRight") {
+                ship.x += ship.speed;
+            }
+            if (event.key === "ArrowUp") {
+                ship.y -= ship.speed;
+            }
+            if (event.key === "ArrowDown") {
+                ship.y += ship.speed;
+            }
+            if (event.key === " ") {
+                var bullet = {
+                    x: ship.x + ship.width/2 - 2.5,
+                    y: ship.y,
+                    width: 5,
+                    height: 10
+                };
+                ship.bullets.push(bullet);
+            }
+        });
+
+        // Check for collisions
+        function checkCollisions() {
+            for (var i = 0; i < asteroids.length; i++) {
+                for (var j = 0; j < ship.bullets.length; j++) {
+                    if (ship.bullets[j].x < asteroids[i].x + asteroids[i].width &&
+                        ship.bullets[j].x + ship.bullets[j].width > asteroids[i].x &&
+                        ship.bullets[j].y < asteroids[i].y + asteroids[i].height &&
+                        ship.bullets[j].y + ship.bullets[j].height > asteroids[i].y) {
+                        asteroids.splice(i, 1);
+                        ship.bullets.splice(j, 1);
+                        i--;
+                        break;
+                    }
+                }
+                if (ship.x < asteroids[i].x + asteroids[i].width &&
+                    ship.x + ship.width > asteroids[i].x &&
+                    ship.y < asteroids[i].y + asteroids[i].height &&
+                    ship.y + ship.height > asteroids[i].y) {
+                    alert("Game Over!");
+                    document.location.reload();
+                }
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            draw();
+            move();
+            checkCollisions();
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
