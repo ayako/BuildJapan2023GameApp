@@ -6,6 +6,8 @@ GitHub Copilot Chat を利用したコーディングデモのサンプルコー
 
 GitHub Copilit Chat を使いながら Azure App Service (Web App)でホストする Web アプリ (C#, JavaScript) のソースコード例です。 
 
+実際にコードを生成をお試しいただく際は、[こちらの Commit](https://github.com/ayako/BuildJapan2023GameApp/tree/2db79c3a9cbf030fbaf1b217fddfc100ee236012) をお試しください。
+
 **期間限定** [Asteroids Game 公開中](https://buildjapan2023gameapp.azurewebsites.net/)
 
 ![Asteroids Game](AsteroidsGame.png)
@@ -15,6 +17,8 @@ GitHub Copilit Chat を使いながら Azure App Service (Web App)でホスト�
 GitHub Copilot Chat で生成したシューティングゲームのソースコード例です。
 
 ![Simple Game](SimpleGame.png)
+
+index1.html -> index2.html -> index3.html とプロンプト変更(詳細指定)により生成コードが変化します。
 
 ## Disclaimer
 
